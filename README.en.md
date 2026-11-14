@@ -31,6 +31,7 @@ Scan a QR code, get the transfer page, add it to your home screen — that's it.
 | Platform | File | Notes |
 | --- | --- | --- |
 | macOS 13.5+ (Apple Silicon) | [shoudi-macos-arm64.zip](https://github.com/Aarontaken/shoudi/releases/latest/download/shoudi-macos-arm64.zip) | 37MB, Node runtime included |
+| macOS 13.5+ (Intel) | [shoudi-macos-x64.zip](https://github.com/Aarontaken/shoudi/releases/latest/download/shoudi-macos-x64.zip) | 38MB, Node runtime included |
 | Windows 10/11 x64 | [shoudi-windows-x64.zip](https://github.com/Aarontaken/shoudi/releases/latest/download/shoudi-windows-x64.zip) | 33MB, node.exe included |
 
 > No code-signing certificate yet: on macOS, right-click → Open the first time; on Windows you may need “More info → Run anyway”. It's a one-time thing.
@@ -97,8 +98,11 @@ cd shoudi
 # run it directly (no dependencies to install)
 node server.mjs --open
 
-# build the Mac app + shareable zip
+# build the Mac app + shareable zip (Apple Silicon)
 ./scripts/build-app.command --share
+
+# Intel build
+./scripts/build-app.command --arch x64 --share
 
 # build the Windows package
 ./scripts/build-win.command

@@ -1,8 +1,9 @@
 #!/bin/bash
 # 重新生成「手递.app」
 #
-#   ./build-app.command            生成 app
-#   ./build-app.command --share    顺便打一个方便分享的 zip
+#   ./build-app.command                 生成 app（Apple 芯片）
+#   ./build-app.command --share         顺便打一个方便分享的 zip
+#   ./build-app.command --arch x64 --share  生成 Intel 版
 #
 # 生成出来的 app 是自包含的：Node 运行时、服务端、页面全在里面，
 # 整个 app 拷给别人就能用（对方不需要装 Node）。
@@ -16,25 +17,41 @@ APP="手递.app"
 BUILD="$DIR/.build"
 CACHE="$DIR/.cache"
 NODE_VER="v24.18.1"
-NODE="$CACHE/node"
+
+SHARE=0
+ARCH="arm64"
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --share) SHARE=1; shift ;;
+    --arch) ARCH="${2:-arm64}"; shift 2 ;;
+    *) shift ;;
+  esac
+done
+if [ "$ARCH" != "arm64" ] && [ "$ARCH" != "x64" ]; then
+  echo "  --arch 只能是 arm64 或 x64"
+  exit 1
+fi
+
+NODE="$CACHE/node-$ARCH"
 
 # ---------------------------------------------------------------- 运行时
-# 优先用已有的：缓存 → 旧 app 里的那份 → 都没有才下载
-if [ ! -x "$NODE" ] && [ -x "$APP/Contents/Resources/node" ]; then
+# 优先用已有的：缓存 → 旧 app 里的那份（仅 arm64）→ 都没有才下载
+if [ ! -x "$NODE" ] && [ "$ARCH" = "arm64" ] && [ -x "$APP/Contents/Resources/node" ]; then
   NODE="$APP/Contents/Resources/node"
 fi
 if [ ! -x "$NODE" ]; then
   echo ""
-  echo "  下载内置的 Node 运行时（约 50MB，只下一次）…"
+  echo "  下载内置的 Node 运行时（${ARCH}，约 50MB，只下一次）…"
   mkdir -p "$CACHE"
+  TARBALL="node-$NODE_VER-darwin-$ARCH"
   curl -fL --retry 2 --progress-bar \
-    "https://nodejs.org/dist/$NODE_VER/node-$NODE_VER-darwin-arm64.tar.gz" \
-    -o "$CACHE/node.tar.gz"
-  tar -xzf "$CACHE/node.tar.gz" -C "$CACHE"
-  cp "$CACHE/node-$NODE_VER-darwin-arm64/bin/node" "$CACHE/node"
-  chmod +x "$CACHE/node"
-  rm -rf "$CACHE/node.tar.gz" "$CACHE/node-$NODE_VER-darwin-arm64"
-  NODE="$CACHE/node"
+    "https://nodejs.org/dist/$NODE_VER/$TARBALL.tar.gz" \
+    -o "$CACHE/$TARBALL.tar.gz"
+  tar -xzf "$CACHE/$TARBALL.tar.gz" -C "$CACHE"
+  cp "$CACHE/$TARBALL/bin/node" "$CACHE/node-$ARCH"
+  chmod +x "$CACHE/node-$ARCH"
+  rm -rf "$CACHE/$TARBALL.tar.gz" "$CACHE/$TARBALL"
+  NODE="$CACHE/node-$ARCH"
 fi
 
 # ---------------------------------------------------------------- 图标
@@ -101,12 +118,12 @@ touch "$APP"
 rm -rf "$BUILD"
 
 echo ""
-echo "  ✓ 生成好了：$DIR/$APP  ($(du -sh "$APP" | cut -f1))"
+echo "  ✓ 生成好了：$DIR/$APP  ($(du -sh "$APP" | cut -f1)，$ARCH)"
 echo "    自包含的，直接拷给别人就能用。"
 
 # ---------------------------------------------------------------- 分享
-if [ "${1:-}" = "--share" ]; then
-  ZIP="$DIR/手递-macOS.zip"
+if [ "$SHARE" = "1" ]; then
+  if [ "$ARCH" = "x64" ]; then ZIP="$DIR/手递-macOS-x64.zip"; else ZIP="$DIR/手递-macOS.zip"; fi
   rm -f "$ZIP"
   echo ""
   echo "  正在打包 zip…"

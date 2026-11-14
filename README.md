@@ -31,6 +31,7 @@
 | 系统 | 文件 | 说明 |
 | --- | --- | --- |
 | macOS 13.5+（Apple 芯片） | [shoudi-macos-arm64.zip](https://github.com/Aarontaken/shoudi/releases/latest/download/shoudi-macos-arm64.zip) | 37MB，自带 Node 运行时 |
+| macOS 13.5+（Intel） | [shoudi-macos-x64.zip](https://github.com/Aarontaken/shoudi/releases/latest/download/shoudi-macos-x64.zip) | 38MB，自带 Node 运行时 |
 | Windows 10/11 x64 | [shoudi-windows-x64.zip](https://github.com/Aarontaken/shoudi/releases/latest/download/shoudi-windows-x64.zip) | 33MB，自带 node.exe |
 
 > 没有代码签名证书：macOS 第一次要右键 →「打开」，Windows 第一次可能提示「仍要运行」。只有这一次。
@@ -97,8 +98,11 @@ cd shoudi
 # 直接跑（不需要安装任何依赖）
 node server.mjs --open
 
-# 生成 Mac app + 分享 zip
+# 生成 Mac app + 分享 zip（Apple 芯片）
 ./scripts/build-app.command --share
+
+# Intel 版
+./scripts/build-app.command --arch x64 --share
 
 # 生成 Windows 包
 ./scripts/build-win.command
