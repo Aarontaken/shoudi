@@ -1,0 +1,13 @@
+# 系统
+.DS_Store
+
+# 构建产物（Node 运行时、app 包、分享 zip）
+.cache/
+.build/
+手递.app/
+*.zip
+
+# 运行时数据
+.devices.json
+.clips.json
+*.log

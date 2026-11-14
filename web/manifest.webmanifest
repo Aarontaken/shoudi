@@ -1,0 +1,15 @@
+{
+  "name": "手递 · 局域网投递",
+  "short_name": "手递",
+  "description": "两台设备之间的局域网文件投递站",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f0e9da",
+  "theme_color": "#f0e9da",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
