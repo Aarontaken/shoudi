@@ -1,0 +1,548 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>手递 · LocalDrop — 电脑和手机之间，把文件递过去</title>
+<meta name="description" content="局域网文件投递：macOS / Windows 桌面端 + 手机浏览器。扫码即传，手机不装 App，文件不经过任何服务器。">
+<meta name="theme-color" content="#f0e9da">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<meta property="og:title" content="手递 · LocalDrop">
+<meta property="og:description" content="电脑和手机在同一个 Wi-Fi 下，扫码就能互传。手机不装 App，文件不经过任何服务器。">
+<meta property="og:image" content="screenshot-desktop.png">
+<style>
+:root {
+  --paper: #f0e9da;
+  --paper-2: #fbf7ed;
+  --paper-3: #e8e0cd;
+  --ink: #17130e;
+  --ink-2: #4b4337;
+  --muted: #8b8171;
+  --line: #cfc4ad;
+  --red: #c0392b;
+  --red-dark: #9c2c21;
+  --sans: "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", "Source Han Sans SC",
+          "Microsoft YaHei", system-ui, -apple-system, sans-serif;
+  --mono: ui-monospace, "SFMono-Regular", "SF Mono", Menlo, Consolas, monospace;
+}
+
+* { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  color: var(--ink);
+  font-family: var(--sans);
+  background-color: var(--paper);
+  background-image: radial-gradient(rgba(23, 19, 14, .075) 1px, transparent 1px);
+  background-size: 20px 20px;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: inherit; }
+
+.wrap {
+  width: min(1100px, 100% - 48px);
+  margin: 0 auto;
+}
+
+/* ---------------------------------------------------------------- 顶栏 */
+
+.bar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: rgba(240, 233, 218, .92);
+  backdrop-filter: blur(10px);
+  border-bottom: 1.5px solid var(--ink);
+}
+
+.bar .wrap {
+  height: 64px;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+}
+
+.seal {
+  width: 34px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  background: var(--red);
+  color: var(--paper-2);
+  font-size: 12px;
+  font-weight: 600;
+  writing-mode: vertical-rl;
+  letter-spacing: .1em;
+  line-height: 1;
+  border-radius: 2px;
+  box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, .35);
+  transform: rotate(-2.5deg);
+}
+
+.brand b {
+  font-size: 14px;
+  letter-spacing: .09em;
+}
+
+.brand .k {
+  display: block;
+  margin-top: 1px;
+  font-family: var(--mono);
+  font-size: 8.5px;
+  letter-spacing: .22em;
+  color: var(--muted);
+}
+
+nav {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: .06em;
+}
+
+nav a {
+  color: var(--ink-2);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  padding-bottom: 2px;
+}
+
+nav a:hover { color: var(--red); border-color: var(--red); }
+
+nav .gh { color: var(--ink); }
+
+/* ---------------------------------------------------------------- 首屏 */
+
+.hero { padding: 88px 0 48px; max-width: 760px; text-align: center; }
+
+.eyebrow {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: .2em;
+  color: var(--red);
+}
+
+h1 {
+  margin: 20px 0 24px;
+  font-size: clamp(46px, 7.4vw, 84px);
+  line-height: 1.02;
+  letter-spacing: .01em;
+  font-weight: 600;
+}
+
+h1 em {
+  font-style: normal;
+  color: var(--red);
+}
+
+.lede {
+  margin: 0 auto;
+  max-width: 520px;
+  font-size: 17px;
+  line-height: 1.85;
+  color: var(--ink-2);
+}
+
+.cta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  margin: 36px 0 16px;
+}
+
+.btn {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 208px;
+  padding: 14px 22px;
+  background: var(--red);
+  color: #fff;
+  text-decoration: none;
+  border: 1.5px solid var(--red-dark);
+  border-radius: 3px;
+  transition: background-color .15s, transform .15s;
+}
+
+.btn:hover { background: var(--red-dark); transform: translateY(-1px); }
+
+.btn .os { font-size: 14px; letter-spacing: .06em; }
+
+.btn .meta {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: .08em;
+  opacity: .75;
+}
+
+.btn.ghost {
+  background: var(--paper-2);
+  color: var(--ink);
+  border-color: var(--ink);
+}
+
+.btn.ghost:hover { background: var(--ink); color: var(--paper-2); }
+.btn.ghost .meta { opacity: .55; }
+.btn.ghost:hover .meta { opacity: .7; }
+
+.fine {
+  margin: 0 auto;
+  max-width: 560px;
+  font-family: var(--mono);
+  font-size: 10px;
+  line-height: 1.7;
+  letter-spacing: .05em;
+  color: var(--muted);
+}
+
+/* ---------------------------------------------------------------- 截图 */
+
+.shot {
+  margin: 10px 0 0;
+  padding: 0;
+}
+
+.shot img {
+  display: block;
+  width: 100%;
+  border: 1.5px solid var(--ink);
+  border-radius: 4px;
+  box-shadow: 12px 12px 0 rgba(23, 19, 14, .07);
+}
+
+.shot figcaption {
+  margin-top: 12px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: .12em;
+  color: var(--muted);
+  text-align: right;
+}
+
+/* ---------------------------------------------------------------- 三个点 */
+
+.points {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 34px;
+  margin-top: 80px;
+  padding: 76px 0;
+  border-top: 1px dashed var(--line);
+}
+
+.point .num {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: .2em;
+  color: var(--red);
+}
+
+.point h3 {
+  margin: 12px 0 8px;
+  font-size: 17px;
+  letter-spacing: .04em;
+}
+
+.point p {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.8;
+  color: var(--muted);
+}
+
+/* ---------------------------------------------------------------- 怎么用 */
+
+.how {
+  display: grid;
+  grid-template-columns: 1.05fr .95fr;
+  gap: 64px;
+  align-items: center;
+  padding: 80px 0;
+  border-top: 1.5px solid var(--ink);
+}
+
+h2 {
+  margin: 0 0 24px;
+  font-size: clamp(28px, 3.4vw, 40px);
+  letter-spacing: .02em;
+  font-weight: 600;
+}
+
+.how ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: step;
+}
+
+.how li {
+  counter-increment: step;
+  position: relative;
+  padding: 15px 0 15px 46px;
+  border-bottom: 1px dashed var(--line);
+}
+
+.how li:first-child { border-top: 1px dashed var(--line); }
+
+.how li::before {
+  content: counter(step, decimal-leading-zero);
+  position: absolute;
+  left: 0;
+  top: 17px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: .1em;
+  color: var(--red);
+}
+
+.how li b { display: block; font-size: 15px; font-weight: 600; }
+
+.how li span {
+  display: block;
+  margin-top: 3px;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+.how-shots {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.how-shots img {
+  width: 48%;
+  border: 1.5px solid var(--ink);
+  border-radius: 12px;
+  box-shadow: 8px 8px 0 rgba(23, 19, 14, .07);
+}
+
+/* ---------------------------------------------------------------- 安全 */
+
+.security {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 64px;
+  align-items: center;
+  padding: 80px 0;
+  border-top: 1.5px solid var(--ink);
+}
+
+.security p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.9;
+  color: var(--ink-2);
+}
+
+.security ul {
+  margin: 22px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.security li {
+  position: relative;
+  padding: 9px 0 9px 20px;
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--muted);
+  border-bottom: 1px dashed var(--line);
+}
+
+.security li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 16px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--red);
+}
+
+.sec-shot { margin: 0; }
+
+.sec-shot img {
+  display: block;
+  width: 100%;
+  border: 1.5px solid var(--ink);
+  border-radius: 4px;
+  box-shadow: 12px 12px 0 rgba(23, 19, 14, .07);
+}
+
+/* ---------------------------------------------------------------- 页脚 */
+
+footer {
+  margin-top: 84px;
+  padding: 24px 0 44px;
+  border-top: 1.5px solid var(--ink);
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: .08em;
+  color: var(--muted);
+}
+
+footer a {
+  color: var(--ink-2);
+  text-decoration: none;
+  border-bottom: 1px dotted var(--line);
+  padding-bottom: 1px;
+}
+
+footer a:hover { color: var(--red); border-color: var(--red); }
+
+/* ---------------------------------------------------------------- 动效 / 响应式 */
+
+.hero > * {
+  animation: rise .7s cubic-bezier(.2, .8, .2, 1) both;
+}
+
+.hero > *:nth-child(2) { animation-delay: .06s; }
+.hero > *:nth-child(3) { animation-delay: .12s; }
+.hero > *:nth-child(4) { animation-delay: .18s; }
+.hero > *:nth-child(5) { animation-delay: .24s; }
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+  html { scroll-behavior: auto; }
+}
+
+@media (max-width: 880px) {
+  .hero { padding: 56px 0 32px; }
+  .lede br { display: none; }
+  .points { grid-template-columns: 1fr; gap: 28px; margin-top: 56px; padding: 56px 0; }
+  .how, .security { grid-template-columns: 1fr; gap: 40px; padding: 56px 0; }
+  .how-shots img { width: 47%; }
+  nav a:not(.gh) { display: none; }
+  .cta .btn { flex: 1 1 100%; min-width: 0; }
+  footer { flex-direction: column; }
+  h1 { font-size: clamp(42px, 10vw, 64px); }
+}
+</style>
+</head>
+<body>
+
+<header class="bar">
+  <div class="wrap">
+    <a class="brand" href="#top">
+      <span class="seal">手递</span>
+      <b>LocalDrop</b>
+    </a>
+    <nav>
+      <a href="#how">怎么用</a>
+      <a href="#security">安全</a>
+      <a class="gh" href="https://github.com/Aarontaken/shoudi">GitHub ↗</a>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+  <section class="hero wrap">
+    <p class="eyebrow">局域网文件投递 · macOS / Windows</p>
+    <h1>把文件<br><em>递</em>过去。</h1>
+    <p class="lede">电脑和手机在同一个 Wi-Fi 下，扫码就能互传。<br>手机不用装 App，文件不经过任何服务器。</p>
+    <div class="cta">
+      <a class="btn" href="https://github.com/Aarontaken/shoudi/releases/latest/download/shoudi-macos-arm64.zip">
+        <span class="os">下载 macOS 版</span>
+        <span class="meta">Apple 芯片 · 37MB · 内置运行时</span>
+      </a>
+      <a class="btn ghost" href="https://github.com/Aarontaken/shoudi/releases/latest/download/shoudi-windows-x64.zip">
+        <span class="os">下载 Windows 版</span>
+        <span class="meta">x64 · 33MB · 免安装</span>
+      </a>
+    </div>
+    <p class="fine">解压即用。首次打开：macOS 右键 →「打开」，Windows 可能提示「仍要运行」。</p>
+  </section>
+
+  <figure class="shot wrap">
+    <img src="screenshot-desktop.png" alt="手递桌面端界面">
+    <figcaption>NO. 261114 · 电脑端的传输页</figcaption>
+  </figure>
+
+  <section class="points wrap">
+    <div class="point">
+      <span class="num">01</span>
+      <h3>手机零安装</h3>
+      <p>浏览器扫码就是传输页。加到主屏幕之后，它就是一个图标，不用装任何 App。</p>
+    </div>
+    <div class="point">
+      <span class="num">02</span>
+      <h3>不压缩，不限大小</h3>
+      <p>局域网直连，照片、视频、安装包原样过去。没有大小限制，也不会上传到任何云端。</p>
+    </div>
+    <div class="point">
+      <span class="num">03</span>
+      <h3>拖一下就发</h3>
+      <p>把文件拖到程序坞或桌面上的「手递」图标上，手机上点一下 ↓ 就能拿到。</p>
+    </div>
+  </section>
+
+  <section class="how wrap" id="how">
+    <div>
+      <h2>三步</h2>
+      <ol>
+        <li><b>打开电脑上的「手递」</b><span>浏览器里出现传输页和二维码</span></li>
+        <li><b>手机扫码</b><span>相机扫一下，网页直接打开</span></li>
+        <li><b>电脑点「允许」</b><span>这台手机被记住，以后免确认</span></li>
+      </ol>
+    </div>
+    <div class="how-shots">
+      <img src="screenshot-mobile.png" alt="手机端传输页">
+      <img src="screenshot-gate.png" alt="等待电脑确认">
+    </div>
+  </section>
+
+  <section class="security wrap" id="security">
+    <div>
+      <p class="eyebrow">Security</p>
+      <h2>陌生人连不进来</h2>
+      <p>同一个 Wi-Fi 下的其他设备，光知道地址是打不开的。第一次连接要在电脑上点一次「允许」，之后这台设备被记住；随时可以在电脑端撤销。</p>
+      <ul>
+        <li>删文件、打开文件夹、停止服务 —— 只有电脑自己能做</li>
+        <li>二维码只是地址，不等于放行</li>
+        <li>数据只在局域网内，不上云、不经第三方服务器</li>
+      </ul>
+    </div>
+    <figure class="sec-shot">
+      <img src="screenshot-approve.png" alt="电脑端确认连接请求">
+    </figure>
+  </section>
+
+  <footer class="wrap">
+    <div>手递 · LocalDrop v1.1.0</div>
+    <div>
+      <a href="https://github.com/Aarontaken/shoudi">源码</a> ·
+      <a href="https://github.com/Aarontaken/shoudi/blob/main/LICENSE">MIT</a> ·
+      <a href="https://github.com/Aarontaken/shoudi/blob/main/README.en.md">English</a>
+    </div>
+  </footer>
+</main>
+
+</body>
+</html>

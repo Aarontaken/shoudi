@@ -3,7 +3,7 @@
 **Send files between your computer and your phone over your local Wi-Fi.**
 Nothing to install on the phone, no cloud, no compression, no size limit.
 
-[中文 →](README.md) · [Download](#download) · [Security](#security-strangers-cant-get-in) · [Build](#build-from-source)
+[中文 →](README.md) · [Website](https://aarontaken.github.io/shoudi/) · [Download](#download) · [Security](#security-strangers-cant-get-in)
 
 ![Desktop](docs/screenshot-desktop.png)
 
@@ -56,6 +56,8 @@ Windows will ask about the firewall on first run — **allow it and tick “Priv
 Scan the QR code → the browser opens the page → click “Allow” on the computer → “Add to Home Screen”.
 From then on it's just an icon on your phone. **No app to install.**
 
+<img src="docs/screenshot-gate.png" width="280" alt="Waiting for approval">
+
 ## How to transfer
 
 | Task | How |
@@ -74,6 +76,8 @@ phone scans ──► waiting for approval ──► computer shows “iPhone wa
                                                   │
                                                   └─ device is remembered (180 days)
 ```
+
+![Approval on the computer](docs/screenshot-approve.png)
 
 - The computer page lists authorized devices; revoking one takes effect immediately
 - **Deleting files, revealing folders, stopping the server** are computer-only actions
